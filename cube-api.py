@@ -14,6 +14,7 @@ Many comments here just to help Chris understand
 ## For REST API
 app = Flask(__name__)
 url_base = "/cube/api/v1/"
+kill_code = 2121
 
 ## Stoarge
 config_file_path = "/home/pi/cube/config.json"
@@ -192,8 +193,9 @@ def set_animation(name):
 
 @app.route(url_base+"kill/<code>")
 def kill_via_code(code):
-    contoller.kill_animation()
-    return "animation killed"
+    if int(code) == int(kill_code):
+        contoller.kill_animation()
+        return "animation killed"
 
 if __name__ == "__main__":
     app.run(port=8080, host="0.0.0.0")
