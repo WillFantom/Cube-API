@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import json
 import sys
 import time
+import os
 
 '''
 3D Cube LED Matrix
@@ -168,23 +169,31 @@ contoller = CubeController()
 
 ##### API #####
 
-@app.route(url_base + "add-animation", methods=["POST"])
+@app.route(url_base + "addanimation", methods=["POST"])
 def add_animation():
     if not request.json:
         abort(400)
-    ### Do JSON Validation Here
-    # For Example
-    if not "name" in request.json:
-        abort(400)
+    
+    # Validate
+    if contoller.validate_animation(request.json) == False:
+        return "Failed: Invalid Animation File"
+
+    # Install File
     with open(animations_dir_path + request.json["name"].lower() + ".json", "w+") as f:
         json.dumps(request.json, f)
-    return jsonify({'code': 0}), 201
 
 @app.route(url_base+"setanimation/<name>")
 def set_animation(name):
     print("? Set Animation: " + name)
+    if os.path.isfile(animations_dir_path + name + ".json") == False:
+        return name + " is not a valid animation"
     contoller.start_animation(name)
-    return "okay"
+    return "animation started"
+
+@app.route(url_base+"kill/<code>")
+def kill_via_code(code):
+    contoller.kill_animation()
+    return "animation killed"
 
 if __name__ == "__main__":
     app.run(port=8080, host="0.0.0.0")
